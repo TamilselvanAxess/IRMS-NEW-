@@ -47,16 +47,20 @@ export const login = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    if (!req.user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
     res.status(200).json({
       message: "User retrieved successfully",
       user: {
-        id: user._id,
-        name: user.username || user.name,
-        email: user.email,
+        id: req.user._id,
+        name: req.user.username || req.user.name,
+        email: req.user.email,
       },
     });
   } catch (error) {
+    console.error('GetMe error:', error);
     res.status(500).json({ message: "Server error" });
   }
 };

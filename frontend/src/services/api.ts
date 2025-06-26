@@ -60,7 +60,10 @@ class ApiService {
       
       if (!response.ok) {
         const errorData: ApiError = await response.json();
-        throw new Error(errorData.message || 'An error occurred');
+        const error = new Error(errorData.message || 'An error occurred');
+        // Add status code to error for better handling
+        (error as any).status = response.status;
+        throw error;
       }
 
       return await response.json();
@@ -113,6 +116,23 @@ class ApiService {
 
   isAuthenticated(): boolean {
     return !!this.getToken();
+  }
+
+  // Check if token is expired (basic JWT validation)
+  isTokenExpired(): boolean {
+    const token = this.getToken();
+    if (!token) return true;
+
+    try {
+      // Decode JWT payload (without verification - just for expiration check)
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Date.now() / 1000;
+      
+      return payload.exp < currentTime;
+    } catch (error) {
+      // If token is malformed, consider it expired
+      return true;
+    }
   }
 }
 

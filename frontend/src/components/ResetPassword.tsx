@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, Lock, ArrowLeft } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store';
 import { resetPassword, clearError } from '../store/slices/authSlice';
@@ -11,6 +11,9 @@ const ResetPassword: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   
+  // Add ref to track user actions and prevent toasts on refresh
+  const hasUserAction = useRef(false);
+  
   const [values, setValues] = useState<Record<string, string>>({
     password: '',
     confirmPassword: ''
@@ -21,7 +24,8 @@ const ResetPassword: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    if (error) {
+    // Only show error toast if user has performed an action and there's an error
+    if (error && hasUserAction.current) {
       toast.error(error);
     }
   }, [error]);
@@ -84,6 +88,9 @@ const ResetPassword: React.FC = () => {
     e.preventDefault();
     if (!validate()) return;
     
+    // Mark that user has performed an action
+    hasUserAction.current = true;
+    
     if (!token) {
       setErrors({ confirmPassword: 'Reset token is missing' });
       toast.error('Reset token is missing');
@@ -138,7 +145,7 @@ const ResetPassword: React.FC = () => {
           {/* Back Button */}
           <button
             onClick={handleBackToLogin}
-            className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+            className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />
             Back to Login
@@ -184,7 +191,7 @@ const ResetPassword: React.FC = () => {
                     }
                     value={values[field.name]}
                     onChange={e => handleChange(field.name, e.target.value)}
-                    className={`w-full pl-10 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 ${errors[field.name] ? 'border-red-500' : ''
+                    className={`w-full pl-10 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 cursor-text ${errors[field.name] ? 'border-red-500' : ''
                       }`}
                     placeholder={field.placeholder}
                     required
@@ -204,7 +211,7 @@ const ResetPassword: React.FC = () => {
                           setShowConfirmPassword(s => !s);
                         }
                       }}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-600 transition-colors"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-600 transition-colors cursor-pointer"
                     >
                       {(field.name === 'password' ? showPassword : showConfirmPassword) ? 
                         <EyeOff className="w-5 h-5" /> : 
@@ -221,7 +228,7 @@ const ResetPassword: React.FC = () => {
             
             <button
               type="submit"
-              className="w-full mt-5 bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-5 bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               disabled={isLoading || !!successMessage}
             >
               {isLoading ? (

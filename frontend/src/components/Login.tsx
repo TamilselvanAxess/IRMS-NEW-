@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, Users, Mail, Lock } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store';
 import { loginUser, forgotPassword, clearError } from '../store/slices/authSlice';
@@ -8,7 +8,10 @@ import toast from 'react-hot-toast';
 const Login: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isLoading, error, isAuthenticated, user } = useAppSelector((state) => state.auth);
+  
+  // Add refs to track component mount and prevent toasts on refresh
+  const hasUserAction = useRef(false);
   
   const [values, setValues] = useState<Record<string, string>>({
     email: '',
@@ -22,17 +25,27 @@ const Login: React.FC = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // Only show success toast if user has performed an action and is authenticated
+    if (isAuthenticated && hasUserAction.current) {
       toast.success('Login successful!');
       // You can navigate to a dashboard or home page here
     }
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (error) {
+    // Only show error toast if user has performed an action and there's an error
+    if (error && hasUserAction.current) {
       toast.error(error);
     }
   }, [error]);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Navigate to default dashboard
+      navigate('/candidatesTable');
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const fields = [
     {
@@ -92,10 +105,15 @@ const Login: React.FC = () => {
     e.preventDefault();
     if (!validate()) return;
     
+    // Mark that user has performed an action
+    hasUserAction.current = true;
+    
     dispatch(loginUser(values as { email: string; password: string }))
       .unwrap()
       .then(() => {
         toast.success('Logged in successfully!');
+        // Navigate to default dashboard
+        navigate('/candidatesTable');
       })
       .catch((err) => {
         toast.error(err || 'Login failed');
@@ -115,6 +133,9 @@ const Login: React.FC = () => {
       return;
     }
 
+    // Mark that user has performed an action
+    hasUserAction.current = true;
+    
     setForgotPasswordLoading(true);
     setForgotPasswordMessage('');
     
@@ -179,7 +200,7 @@ const Login: React.FC = () => {
                   type="email"
                   value={forgotPasswordEmail}
                   onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200"
+                  className="w-full pl-10 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 cursor-text"
                   placeholder="Enter your email"
                   required
                 />
@@ -203,7 +224,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowForgotPassword(false)}
-                className="flex-1 bg-gray-600 text-white py-3 rounded-lg font-medium hover:bg-gray-700 transition-all duration-200"
+                className="flex-1 bg-gray-600 text-white py-3 rounded-lg font-medium hover:bg-gray-700 transition-all duration-200 cursor-pointer"
               >
                 Back to Login
               </button>
@@ -211,7 +232,7 @@ const Login: React.FC = () => {
                 type="button"
                 onClick={handleForgetPassword}
                 disabled={forgotPasswordLoading}
-                className="flex-1 bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {forgotPasswordLoading ? (
                   <div className="flex items-center justify-center">
@@ -264,7 +285,7 @@ const Login: React.FC = () => {
               <Users className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
-              Welcome Back
+              IRMS
             </h1>
             <p className="text-gray-400">Sign in to your account</p>
           </div>
@@ -291,7 +312,7 @@ const Login: React.FC = () => {
                   }
                   value={values[field.name]}
                   onChange={e => handleChange(field.name, e.target.value)}
-                  className={`w-full pl-10 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 ${errors[field.name] ? 'border-red-500' : ''
+                  className={`w-full pl-10 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 cursor-text ${errors[field.name] ? 'border-red-500' : ''
                     }`}
                   placeholder={field.placeholder}
                   required
@@ -305,7 +326,7 @@ const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(s => !s)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-600 transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-600 transition-colors cursor-pointer"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -321,7 +342,7 @@ const Login: React.FC = () => {
           <div className="flex justify-end">
             <button
               type="button"
-              className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
+              className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium cursor-pointer"
               onClick={() => setShowForgotPassword(true)}
             >
               Forgot password?
@@ -330,7 +351,7 @@ const Login: React.FC = () => {
           
           <button
             type="submit"
-            className="w-full mt-5 bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full mt-5 bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             disabled={isLoading}
           >
             {isLoading ? (

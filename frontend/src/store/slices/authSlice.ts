@@ -24,7 +24,7 @@ const initialState: AuthState = {
   token: apiService.getToken(),
   isLoading: false,
   error: null,
-  isAuthenticated: !!apiService.getToken(),
+  isAuthenticated: !!(apiService.getToken() && !apiService.isTokenExpired()),
 }
 
 // Async thunk for login
@@ -61,7 +61,12 @@ export const getCurrentUser = createAsyncThunk(
       const response = await apiService.getCurrentUser()
       return response
     } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Failed to get user')
+      // Check if it's an authentication error (401)
+      if (error instanceof Error && (error as any).status === 401) {
+        return rejectWithValue('Authentication failed')
+      }
+      // For other errors, don't reject - just return a default response
+      return rejectWithValue('Network error')
     }
   }
 )
@@ -104,6 +109,13 @@ const authSlice = createSlice({
       state.user = action.payload
       state.isAuthenticated = true
     },
+    logout: (state) => {
+      state.user = null
+      state.token = null
+      state.isAuthenticated = false
+      state.error = null
+      apiService.removeToken()
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -129,6 +141,13 @@ const authSlice = createSlice({
         state.token = null
         state.isAuthenticated = false
       })
+      .addCase(logoutUser.rejected, (state) => {
+        // Even if logout fails, we should still clear the state
+        state.user = null
+        state.token = null
+        state.isAuthenticated = false
+        apiService.removeToken()
+      })
       // Get current user cases
       .addCase(getCurrentUser.pending, (state) => {
         state.isLoading = true
@@ -142,11 +161,14 @@ const authSlice = createSlice({
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.isLoading = false
         state.error = action.payload as string
-        // If getting current user fails, user might not be authenticated
-        state.isAuthenticated = false
-        state.user = null
-        state.token = null
-        apiService.removeToken()
+        
+        // Only remove token and logout for authentication failures
+        if (action.payload === 'Authentication failed') {
+          state.isAuthenticated = false
+          state.user = null
+          state.token = null
+          apiService.removeToken()
+        }
       })
       // Forgot password cases
       .addCase(forgotPassword.pending, (state) => {
@@ -175,5 +197,5 @@ const authSlice = createSlice({
   },
 })
 
-export const { clearError, setUser } = authSlice.actions
+export const { clearError, setUser, logout } = authSlice.actions
 export default authSlice.reducer 
