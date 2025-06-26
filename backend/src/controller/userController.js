@@ -16,7 +16,16 @@ const generateToken = (user) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email: email.toLowerCase() });
+    
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    // Convert email to lowercase for consistency
+    const normalizedEmail = email.toLowerCase().trim();
+    
+    const user = await User.findOne({ email: normalizedEmail });
     const isMatch = user && (await bcrypt.compare(password, user.password));
     if (!user || !isMatch)
       return res.status(401).json({ message: "Invalid credentials" });
@@ -31,6 +40,7 @@ export const login = async (req, res) => {
       token: generateToken(user),
     });
   } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -60,7 +70,10 @@ export const initiatePasswordReset = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    // Convert email to lowercase and trim whitespace
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       // Don't reveal if email exists or not for security
       return res.status(200).json({ 
@@ -84,7 +97,7 @@ export const initiatePasswordReset = async (req, res) => {
 
     // Send email
     try {
-      const emailResult = await sendPasswordResetEmail(email, resetToken);
+      const emailResult = await sendPasswordResetEmail(normalizedEmail, resetToken);
       console.log("Email sent successfully:", emailResult.previewUrl);
       
       res.status(200).json({ 
@@ -163,3 +176,54 @@ export const resetPassword = async (req, res) => {
 
 // Legacy function name for backward compatibility
 export const forgetPassword = resetPassword;
+
+// Register new user
+export const register = async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+
+    // Validate input
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "Username, email, and password are required" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
+
+    // Convert email to lowercase and trim whitespace
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      return res.status(400).json({ message: "User with this email already exists" });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new user with normalized email
+    const user = new User({
+      username: username.trim(),
+      email: normalizedEmail,
+      password: hashedPassword,
+    });
+
+    await user.save();
+
+    res.status(201).json({
+      message: "User registered successfully",
+      user: {
+        id: user._id,
+        name: user.username,
+        email: user.email,
+      },
+      token: generateToken(user),
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

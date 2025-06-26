@@ -4,6 +4,7 @@ import cors from 'cors';
 import connectDB from "./src/config/db.js";
 import dotenv from 'dotenv';
 import userRoute from './src/routes/userRoute.js';
+import normalizeEmail from './src/middleware/emailNormalizer.js';
 
 dotenv.config();
 
@@ -15,6 +16,9 @@ const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
+
+// Apply email normalization middleware to all routes
+app.use(normalizeEmail);
 
 app.use('/api/user', userRoute);
 
