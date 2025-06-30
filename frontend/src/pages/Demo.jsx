@@ -1,8 +1,14 @@
 import React from 'react';
-import { ComponentShowcase } from '../components/common';
+import { ComponentShowcase, ToastDemo, ToastTest } from '../components/common';
 
 const Demo = () => {
-  return <ComponentShowcase />;
+  return (
+    <div className="space-y-8">
+      <ComponentShowcase />
+      <ToastTest />
+      <ToastDemo />
+    </div>
+  );
 };
 
 export default Demo; 

@@ -177,7 +177,7 @@ const Table = ({
                   placeholder="Search..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
+                  className={`w-full pl-10 pr-4 py-2 rounded-lg border cursor-text ${
                     isDark 
                       ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400' 
                       : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
@@ -308,7 +308,7 @@ const Table = ({
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-2 rounded-lg transition-colors cursor-pointer ${
                 currentPage === 1
                   ? `${isDark ? 'text-gray-600' : 'text-gray-400'} cursor-not-allowed`
                   : `${isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`
@@ -323,7 +323,7 @@ const Table = ({
                 <button
                   key={pageNum}
                   onClick={() => setCurrentPage(pageNum)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                     currentPage === pageNum
                       ? 'bg-blue-600 text-white'
                       : `${isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`
@@ -337,7 +337,7 @@ const Table = ({
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-2 rounded-lg transition-colors cursor-pointer ${
                 currentPage === totalPages
                   ? `${isDark ? 'text-gray-600' : 'text-gray-400'} cursor-not-allowed`
                   : `${isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`

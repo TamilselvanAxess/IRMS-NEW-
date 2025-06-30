@@ -42,7 +42,7 @@ const Input = ({
   };
 
   const inputClasses = `
-    w-full border-2 rounded-xl font-medium
+    w-full border-2 rounded-xl font-medium cursor-text
     transition-none
     focus:outline-none focus:ring-2 focus:ring-offset-2
     ${sizeClasses[size]}

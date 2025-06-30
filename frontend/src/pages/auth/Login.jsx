@@ -3,7 +3,7 @@ import { Eye, EyeOff, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { loginUser, clearError } from '../../store/slices/authSlice';
-import { Spinner, LoadingScreen } from '../../components/common';
+import { Spinner, useToast } from '../../components/common';
 
 const Login = ({
   title = 'IRMS',
@@ -35,14 +35,15 @@ const Login = ({
   buttonText = 'Sign In',
   bgVideoSrc = '/blackhole.webm',
   overlayVideoSrc,
-  logoIcon = <Users className="w-6 h-6 text-white" />,
+  logoIcon = <Users className="w-6 h-6 text-white cursor-pointer" />,
   forgetPassword = true,
   onForgetPassword,
   footer,
 }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { error, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { error } = useAppSelector((state) => state.auth);
+  const { success, error: showErrorToast } = useToast();
   
   const [values, setValues] = useState(
     Object.fromEntries(fields.map(f => [f.name, '']))
@@ -56,10 +57,14 @@ const Login = ({
     dispatch(clearError());
   }, [dispatch]);
 
-  // Show loading screen if user is already authenticated (prevent flickering)
-  if (isAuthenticated) {
-    return <LoadingScreen message="Redirecting to dashboard..." variant="ring" />;
-  }
+  // Show error toast when there's an error
+  useEffect(() => {
+    if (error) {
+      // Format error message for better user experience
+      const formattedError = formatErrorMessage(error);
+      showErrorToast(formattedError, { duration: 4000 });
+    }
+  }, [error, showErrorToast]);
 
   // Validate all fields
   const validate = () => {
@@ -75,28 +80,89 @@ const Login = ({
   };
 
   const handleChange = (name, value) => {
+    const hadErrors = Object.keys(errors).length > 0;
     setValues(v => ({ ...v, [name]: value }));
     setErrors(e => ({ ...e, [name]: '' }));
+    
     // Clear Redux error when user starts typing
     if (error) {
       dispatch(clearError());
+      // Show a helpful message when user starts correcting their input
+      if (name === 'email' || name === 'password') {
+        showErrorToast('Please check your credentials and try again.', { duration: 2000 });
+      }
+    }
+    
+    // Show success message when user fixes validation errors
+    if (hadErrors && Object.keys(errors).length === 0) {
+      success('✅ Form looks good! You can now submit.', { duration: 2000 });
+    }
+  };
+
+  // Helper function to format error messages
+  const formatErrorMessage = (errorMessage) => {
+    const error = errorMessage.toLowerCase();
+    
+    // Handle specific error cases
+    if (error.includes('invalid credentials') || 
+        error.includes('wrong password') ||
+        error.includes('incorrect password')) {
+      return 'Invalid email or password. Please check your credentials and try again.';
+    } else if (error.includes('user not found') ||
+               error.includes('email not found') ||
+               error.includes('user does not exist')) {
+      return 'Email address not found. Please check your email or create a new account.';
+    } else if (error.includes('password') && error.includes('incorrect')) {
+      return 'Incorrect password. Please try again or use "Forgot Password" to reset.';
+    } else if (error.includes('email') && error.includes('invalid')) {
+      return 'Invalid email format. Please enter a valid email address.';
+    } else if (error.includes('network') ||
+               error.includes('connection') ||
+               error.includes('timeout')) {
+      return 'Connection error. Please check your internet connection and try again.';
+    } else if (error.includes('server') || error.includes('internal')) {
+      return 'Server error. Please try again later or contact support.';
+    } else if (error.includes('unauthorized') || error.includes('401')) {
+      return 'Authentication failed. Please check your credentials.';
+    } else if (error.includes('forbidden') || error.includes('403')) {
+      return 'Access denied. Please contact support if this persists.';
+    } else if (error.includes('not found') || error.includes('404')) {
+      return 'Service not found. Please try again later.';
+    } else {
+      // Default error message with emoji
+      return ` ${errorMessage}`;
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate() || isSubmitting) return;
+    
+    // Validate form first
+    if (!validate()) {
+      // Show toast for validation errors
+      const firstError = Object.values(errors)[0];
+      if (firstError) {
+        showErrorToast(` ${firstError}`, { duration: 3000 });
+      }
+      return;
+    }
+    
+    if (isSubmitting) return;
     
     setIsSubmitting(true);
     try {
       const result = await dispatch(loginUser(values));
       if (loginUser.fulfilled.match(result)) {
-        // Login successful - navigation will be handled by the router
+        // Show success toast and let router handle navigation
+        success(' Login successful! Welcome back!', { duration: 3000 });
         console.log('Login successful:', result.payload);
+        // Don't set isSubmitting to false here - let the router redirect
+      } else {
+        // Only reset submitting state if login failed
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error('Login error:', error);
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -167,11 +233,6 @@ const Login = ({
             </h1>
             <p className="text-gray-400">{subtitle}</p>
           </div>
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-              {error}
-            </div>
-          )}
           {fields.map(field => (
             <div key={field.name}>
               <label className="block text-sm font-medium text-gray-500 mb-2">
@@ -188,7 +249,7 @@ const Login = ({
                   }
                   value={values[field.name]}
                   onChange={e => handleChange(field.name, e.target.value)}
-                  className={`w-full pl-4 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 ${errors[field.name] ? 'border-red-500' : ''
+                  className={`w-full pl-4 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 cursor-text ${errors[field.name] ? 'border-red-500' : ''
                     }`}
                   placeholder={field.placeholder}
                   required
@@ -203,7 +264,7 @@ const Login = ({
                   <button
                     type="button"
                     onClick={() => setShowPassword(s => !s)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-600 transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-600 transition-colors cursor-pointer"
                     disabled={isSubmitting}
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -220,7 +281,7 @@ const Login = ({
             <div className="flex justify-end">
               <button
                 type="button"
-                className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium disabled:opacity-50"
+                className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium disabled:opacity-50 cursor-pointer"
                 onClick={handleForgotPassword}
                 disabled={isSubmitting}
               >

@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { logout } from '../../store/slices/authSlice';
 import { toggleTheme, selectIsDark } from '../../store/slices/themeSlice';
 import ThemeToggle from '../../components/common/ThemeToggle';
-import { LoadingScreen } from '../../components/common';
+import { useToast } from '../../components/common';
 import { LogOut, User, Settings } from 'lucide-react';
 
 const Dashboard = () => {
@@ -11,10 +11,16 @@ const Dashboard = () => {
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const isDark = useAppSelector(selectIsDark);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { success } = useToast();
 
   const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent multiple clicks
+    
     setIsLoggingOut(true);
-    // Add a small delay to show the logout state
+    // Show success toast immediately
+    success('Logged out successfully! See you soon!', { duration: 3000 });
+    
+    // Small delay to show the logout state, then logout
     setTimeout(() => {
       dispatch(logout());
     }, 300);
@@ -22,12 +28,7 @@ const Dashboard = () => {
 
   // Show loading screen if user is not authenticated (prevent flickering)
   if (!isAuthenticated) {
-    return <LoadingScreen message="Redirecting to login..." variant="ring" />;
-  }
-
-  // Show loading screen during logout
-  if (isLoggingOut) {
-    return <LoadingScreen message="Logging out..." variant="ring" />;
+    return null; // Let the router handle the redirect
   }
 
   return (
@@ -52,10 +53,10 @@ const Dashboard = () => {
               <button
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                <LogOut className="w-4 h-4" />
-                <span>Logout</span>
+                <LogOut className={`w-4 h-4 ${isLoggingOut ? 'animate-spin' : ''}`} />
+                <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
               </button>
             </div>
           </div>

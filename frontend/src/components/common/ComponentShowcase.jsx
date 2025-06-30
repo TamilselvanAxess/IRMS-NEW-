@@ -177,21 +177,21 @@ const ComponentShowcase = () => {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => handleViewUser(row)}
-            className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+            className="p-1 text-blue-600 hover:bg-blue-100 rounded cursor-pointer"
             title="View"
           >
             <Eye className="w-4 h-4" />
           </button>
           <button
             onClick={() => handleEditUser(row)}
-            className="p-1 text-green-600 hover:bg-green-100 rounded"
+            className="p-1 text-green-600 hover:bg-green-100 rounded cursor-pointer"
             title="Edit"
           >
             <Edit className="w-4 h-4" />
           </button>
           <button
             onClick={() => handleDeleteUser(row)}
-            className="p-1 text-red-600 hover:bg-red-100 rounded"
+            className="p-1 text-red-600 hover:bg-red-100 rounded cursor-pointer"
             title="Delete"
           >
             <Trash2 className="w-4 h-4" />
@@ -513,7 +513,7 @@ const ComponentShowcase = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className={`p-1 rounded-md transition-colors ${
+                      className={`p-1 rounded-md transition-colors cursor-pointer ${
                         isDark 
                           ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50' 
                           : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'

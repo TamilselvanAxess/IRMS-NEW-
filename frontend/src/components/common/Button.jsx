@@ -16,7 +16,7 @@ const Button = ({
   
   const baseClasses = `
     inline-flex items-center justify-center font-medium rounded-xl
-    transition-all duration-300 ease-out transform
+    transition-all duration-300 ease-out transform cursor-pointer
     focus:outline-none focus:ring-2 focus:ring-offset-2
     disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
     active:scale-95

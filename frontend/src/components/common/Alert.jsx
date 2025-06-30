@@ -82,7 +82,7 @@ const Alert = ({
         {dismissible && (
           <button
             onClick={onDismiss}
-            className={`flex-shrink-0 p-1 rounded-lg transition-colors duration-200 ${
+            className={`flex-shrink-0 p-1 rounded-lg transition-colors duration-200 cursor-pointer ${
               isDark 
                 ? 'hover:bg-white/10 text-gray-400 hover:text-white' 
                 : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'

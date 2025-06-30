@@ -13,4 +13,6 @@ export { default as Table } from './Table';
 export { default as AuthWrapper } from './AuthWrapper';
 export { default as LoadingScreen } from './LoadingScreen';
 export { default as Toast } from './Toast';
-export { default as ToastContainer, ToastProvider, useToast } from './ToastContainer'; 
+export { default as ToastProvider, useToast } from './ToastContainer';
+export { default as ToastDemo } from './ToastDemo';
+export { default as ToastTest } from './ToastTest'; 

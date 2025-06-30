@@ -130,7 +130,7 @@ const ResetPassword = ({
             <button
               type="button"
               onClick={handleBackToLogin}
-              className="w-full bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200"
+              className="w-full bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200 cursor-pointer"
             >
               Go to Login
             </button>
@@ -214,7 +214,7 @@ const ResetPassword = ({
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={e => handlePasswordChange(e.target.value)}
-                className={`w-full pl-10 pr-12 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 ${passwordError ? 'border-red-500' : ''}`}
+                className={`w-full pl-10 pr-12 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 cursor-text ${passwordError ? 'border-red-500' : ''}`}
                 placeholder="Enter your new password"
                 required
               />
@@ -224,7 +224,7 @@ const ResetPassword = ({
               <button
                 type="button"
                 onClick={() => setShowPassword(s => !s)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-600 transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-600 transition-colors cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -243,7 +243,7 @@ const ResetPassword = ({
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={e => handleConfirmPasswordChange(e.target.value)}
-                className={`w-full pl-10 pr-12 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 ${confirmPasswordError ? 'border-red-500' : ''}`}
+                className={`w-full pl-10 pr-12 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 cursor-text ${confirmPasswordError ? 'border-red-500' : ''}`}
                 placeholder="Confirm your new password"
                 required
               />
@@ -253,7 +253,7 @@ const ResetPassword = ({
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(s => !s)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-600 transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-600 transition-colors cursor-pointer"
               >
                 {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -265,7 +265,7 @@ const ResetPassword = ({
 
           <button
             type="submit"
-            className="w-full mt-5 bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full mt-5 bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             disabled={loading}
           >
             {loading ? (
@@ -281,7 +281,7 @@ const ResetPassword = ({
           <button
             type="button"
             onClick={handleBackToLogin}
-            className="w-full mt-2 flex items-center justify-center text-gray-400 hover:text-white transition-colors font-medium"
+            className="w-full mt-2 flex items-center justify-center text-gray-400 hover:text-white transition-colors font-medium cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Login

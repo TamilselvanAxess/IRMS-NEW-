@@ -104,7 +104,7 @@ const ForgotPassword = ({
             <button
               type="button"
               onClick={handleBackToLogin}
-              className="w-full bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200"
+              className="w-full bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200 cursor-pointer"
             >
               Back to Login
             </button>
@@ -188,7 +188,7 @@ const ForgotPassword = ({
                 type="email"
                 value={email}
                 onChange={e => handleEmailChange(e.target.value)}
-                className={`w-full pl-10 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 ${emailError ? 'border-red-500' : ''}`}
+                className={`w-full pl-10 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 cursor-text ${emailError ? 'border-red-500' : ''}`}
                 placeholder="Enter your email address"
                 required
               />
@@ -203,7 +203,7 @@ const ForgotPassword = ({
 
           <button
             type="submit"
-            className="w-full mt-5 bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full mt-5 bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             disabled={loading}
           >
             {loading ? (
@@ -219,7 +219,7 @@ const ForgotPassword = ({
           <button
             type="button"
             onClick={handleBackToLogin}
-            className="w-full mt-2 flex items-center justify-center text-gray-400 hover:text-white transition-colors font-medium"
+            className="w-full mt-2 flex items-center justify-center text-gray-400 hover:text-white transition-colors font-medium cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Login

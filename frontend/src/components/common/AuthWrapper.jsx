@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { checkAuthStatus, setAuthInitialized } from '../../store/slices/authSlice';
 import { LoadingScreen } from './index';
@@ -9,36 +9,36 @@ const AuthWrapper = ({ children }) => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [authCheckComplete, setAuthCheckComplete] = useState(false);
 
-  useEffect(() => {
-    const initializeAuth = async () => {
-      // If no token exists, mark auth as initialized immediately
-      if (!token) {
-        dispatch(setAuthInitialized());
-        setAuthCheckComplete(true);
-        setIsInitializing(false);
-        return;
-      }
+  const initializeAuth = useCallback(async () => {
+    // If no token exists, mark auth as initialized immediately
+    if (!token) {
+      dispatch(setAuthInitialized());
+      setAuthCheckComplete(true);
+      setIsInitializing(false);
+      return;
+    }
 
-      // Only check auth status if we have a token and auth hasn't been initialized
-      if (token && !authInitialized) {
-        try {
-          await dispatch(checkAuthStatus()).unwrap();
-        } catch (error) {
-          console.log('Auth check failed:', error);
-        } finally {
-          setAuthCheckComplete(true);
-          setIsInitializing(false);
-        }
-      } else {
+    // Only check auth status if we have a token and auth hasn't been initialized
+    if (token && !authInitialized) {
+      try {
+        await dispatch(checkAuthStatus()).unwrap();
+      } catch (error) {
+        console.log('Auth check failed:', error);
+      } finally {
         setAuthCheckComplete(true);
         setIsInitializing(false);
       }
-    };
-
-    initializeAuth();
+    } else {
+      setAuthCheckComplete(true);
+      setIsInitializing(false);
+    }
   }, [dispatch, token, authInitialized]);
 
-  // Show loading screen during initialization or auth check
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
+  // Show loading screen only during initial authentication check
   if (isInitializing || (!authInitialized && token) || !authCheckComplete) {
     return (
       <LoadingScreen 
