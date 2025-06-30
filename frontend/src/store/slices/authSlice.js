@@ -72,6 +72,7 @@ const initialState = {
   error: null,
   passwordResetSent: false,
   passwordResetSuccess: false,
+  authInitialized: false,
 };
 
 const authSlice = createSlice({
@@ -84,6 +85,8 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       state.error = null;
+      state.authInitialized = true;
+      state.loading = false;
     },
     clearError: (state) => {
       state.error = null;
@@ -91,6 +94,15 @@ const authSlice = createSlice({
     setUser: (state, action) => {
       state.user = action.payload;
       state.isAuthenticated = true;
+      state.authInitialized = true;
+      state.loading = false;
+    },
+    setAuthInitialized: (state) => {
+      state.authInitialized = true;
+      state.loading = false;
+    },
+    setLoading: (state, action) => {
+      state.loading = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -106,10 +118,12 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.isAuthenticated = true;
         state.error = null;
+        state.authInitialized = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.authInitialized = true;
       })
       // Register
       .addCase(registerUser.pending, (state) => {
@@ -122,10 +136,12 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.isAuthenticated = true;
         state.error = null;
+        state.authInitialized = true;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.authInitialized = true;
       })
       // Check auth status
       .addCase(checkAuthStatus.pending, (state) => {
@@ -136,6 +152,7 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.isAuthenticated = true;
         state.error = null;
+        state.authInitialized = true;
       })
       .addCase(checkAuthStatus.rejected, (state, action) => {
         state.loading = false;
@@ -143,6 +160,7 @@ const authSlice = createSlice({
         state.token = null;
         state.isAuthenticated = false;
         state.error = action.payload;
+        state.authInitialized = true;
       })
       // Forgot password
       .addCase(forgotPassword.pending, (state) => {
@@ -175,5 +193,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearError, setUser } = authSlice.actions;
+export const { logout, clearError, setUser, setAuthInitialized, setLoading } = authSlice.actions;
 export default authSlice.reducer; 

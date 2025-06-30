@@ -1,29 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { logout } from '../../store/slices/authSlice';
 import { toggleTheme, selectIsDark } from '../../store/slices/themeSlice';
 import ThemeToggle from '../../components/common/ThemeToggle';
+import { LoadingScreen } from '../../components/common';
 import { LogOut, User, Settings } from 'lucide-react';
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const isDark = useAppSelector(selectIsDark);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    // Add a small delay to show the logout state
+    setTimeout(() => {
+      dispatch(logout());
+    }, 300);
   };
 
+  // Show loading screen if user is not authenticated (prevent flickering)
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
-            Please log in to access the dashboard
-          </h1>
-        </div>
-      </div>
-    );
+    return <LoadingScreen message="Redirecting to login..." variant="ring" />;
+  }
+
+  // Show loading screen during logout
+  if (isLoggingOut) {
+    return <LoadingScreen message="Logging out..." variant="ring" />;
   }
 
   return (
@@ -47,7 +51,8 @@ const Dashboard = () => {
               </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                disabled={isLoggingOut}
+                className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Logout</span>

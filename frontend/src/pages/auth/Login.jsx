@@ -3,6 +3,7 @@ import { Eye, EyeOff, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { loginUser, clearError } from '../../store/slices/authSlice';
+import { Spinner, LoadingScreen } from '../../components/common';
 
 const Login = ({
   title = 'IRMS',
@@ -41,18 +42,24 @@ const Login = ({
 }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useAppSelector((state) => state.auth);
+  const { error, isAuthenticated } = useAppSelector((state) => state.auth);
   
   const [values, setValues] = useState(
     Object.fromEntries(fields.map(f => [f.name, '']))
   );
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Clear error when component mounts
   useEffect(() => {
     dispatch(clearError());
   }, [dispatch]);
+
+  // Show loading screen if user is already authenticated (prevent flickering)
+  if (isAuthenticated) {
+    return <LoadingScreen message="Redirecting to dashboard..." variant="ring" />;
+  }
 
   // Validate all fields
   const validate = () => {
@@ -78,12 +85,19 @@ const Login = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate() || isSubmitting) return;
     
-    const result = await dispatch(loginUser(values));
-    if (loginUser.fulfilled.match(result)) {
-      // Login successful - you can redirect here or handle success
-      console.log('Login successful:', result.payload);
+    setIsSubmitting(true);
+    try {
+      const result = await dispatch(loginUser(values));
+      if (loginUser.fulfilled.match(result)) {
+        // Login successful - navigation will be handled by the router
+        console.log('Login successful:', result.payload);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -174,10 +188,11 @@ const Login = ({
                   }
                   value={values[field.name]}
                   onChange={e => handleChange(field.name, e.target.value)}
-                  className={`w-full pl-10 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 ${errors[field.name] ? 'border-red-500' : ''
+                  className={`w-full pl-4 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 ${errors[field.name] ? 'border-red-500' : ''
                     }`}
                   placeholder={field.placeholder}
                   required
+                  disabled={isSubmitting}
                 />
                 {field.icon && (
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500">
@@ -189,6 +204,7 @@ const Login = ({
                     type="button"
                     onClick={() => setShowPassword(s => !s)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-600 transition-colors"
+                    disabled={isSubmitting}
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -204,8 +220,9 @@ const Login = ({
             <div className="flex justify-end">
               <button
                 type="button"
-                className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
+                className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium disabled:opacity-50"
                 onClick={handleForgotPassword}
+                disabled={isSubmitting}
               >
                 Forgot password?
               </button>
@@ -214,11 +231,11 @@ const Login = ({
           <button
             type="submit"
             className="w-full mt-5 bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={loading}
+            disabled={isSubmitting}
           >
-            {loading ? (
+            {isSubmitting ? (
               <div className="flex items-center justify-center">
-                <div className="w-5 h-5 border-2 hover:shadow-xl border-t-transparent rounded-full animate-spin mr-2"></div>
+                <Spinner size="sm" className="mr-2" />
                 Signing in...
               </div>
             ) : (

@@ -23,7 +23,7 @@ function App() {
           isAuthenticated ? <Navigate to="/dashboard" replace /> : <ForgotPassword />
         } />
         <Route path="/reset-password/:token" element={
-          isAuthenticated ? <Navigate to="/dashboard" replace /> : <ResetPassword />
+          isAuthenticated ? <Navigate to="/login" replace /> : <ResetPassword />
         } />
         
         {/* Protected routes */}

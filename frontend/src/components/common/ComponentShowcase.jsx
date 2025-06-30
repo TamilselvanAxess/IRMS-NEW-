@@ -8,7 +8,8 @@ import {
   Alert, 
   Checkbox, 
   Spinner,
-  ThemeSelector
+  ThemeSelector,
+  Table
 } from './index';
 import ApiTest from './ApiTest';
 import AuthStatus from './AuthStatus';
@@ -23,7 +24,11 @@ import {
   Download, 
   Settings,
   Trash2,
-  Plus
+  Plus,
+  Edit,
+  Calendar,
+  BadgeCheck,
+  XCircle
 } from 'lucide-react';
 
 const ComponentShowcase = () => {
@@ -40,6 +45,189 @@ const ComponentShowcase = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alerts, setAlerts] = useState([]);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+
+  // Sample table data
+  const users = [
+    {
+      id: 1,
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      role: 'Admin',
+      status: 'active',
+      lastLogin: '2024-01-15',
+      department: 'Engineering'
+    },
+    {
+      id: 2,
+      name: 'Jane Smith',
+      email: 'jane.smith@example.com',
+      role: 'User',
+      status: 'active',
+      lastLogin: '2024-01-14',
+      department: 'Marketing'
+    },
+    {
+      id: 3,
+      name: 'Bob Johnson',
+      email: 'bob.johnson@example.com',
+      role: 'Manager',
+      status: 'inactive',
+      lastLogin: '2024-01-10',
+      department: 'Sales'
+    },
+    {
+      id: 4,
+      name: 'Alice Brown',
+      email: 'alice.brown@example.com',
+      role: 'User',
+      status: 'active',
+      lastLogin: '2024-01-16',
+      department: 'HR'
+    },
+    {
+      id: 5,
+      name: 'Charlie Wilson',
+      email: 'charlie.wilson@example.com',
+      role: 'Admin',
+      status: 'active',
+      lastLogin: '2024-01-13',
+      department: 'Engineering'
+    }
+  ];
+
+  // Table column definitions
+  const tableColumns = [
+    {
+      key: 'name',
+      label: 'Name',
+      sortable: true,
+      render: (value, row) => (
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-3">
+            <User className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <div className="font-medium">{value}</div>
+            <div className="text-sm text-gray-500">{row.department}</div>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      sortable: true,
+      render: (value) => (
+        <div className="flex items-center">
+          <Mail className="w-4 h-4 mr-2 text-gray-400" />
+          {value}
+        </div>
+      )
+    },
+    {
+      key: 'role',
+      label: 'Role',
+      sortable: true,
+      render: (value) => (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+          value === 'Admin' ? 'bg-red-100 text-red-800' :
+          value === 'Manager' ? 'bg-blue-100 text-blue-800' :
+          'bg-gray-100 text-gray-800'
+        }`}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      sortable: true,
+      render: (value) => (
+        <div className="flex items-center">
+          {value === 'active' ? (
+            <BadgeCheck className="w-4 h-4 text-green-500 mr-2" />
+          ) : (
+            <XCircle className="w-4 h-4 text-red-500 mr-2" />
+          )}
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+            value === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          }`}>
+            {value}
+          </span>
+        </div>
+      )
+    },
+    {
+      key: 'lastLogin',
+      label: 'Last Login',
+      sortable: true,
+      render: (value) => (
+        <div className="flex items-center">
+          <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+          {new Date(value).toLocaleDateString()}
+        </div>
+      )
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      sortable: false,
+      render: (value, row) => (
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => handleViewUser(row)}
+            className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+            title="View"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => handleEditUser(row)}
+            className="p-1 text-green-600 hover:bg-green-100 rounded"
+            title="Edit"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => handleDeleteUser(row)}
+            className="p-1 text-red-600 hover:bg-red-100 rounded"
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      )
+    }
+  ];
+
+  // Table event handlers
+  const handleViewUser = (user) => {
+    addAlert('info', `Viewing user: ${user.name}`);
+  };
+
+  const handleEditUser = (user) => {
+    addAlert('warning', `Editing user: ${user.name}`);
+  };
+
+  const handleDeleteUser = (user) => {
+    addAlert('error', `Deleting user: ${user.name}`);
+  };
+
+  const handleRowClick = (user) => {
+    addAlert('info', `Clicked on user: ${user.name}`);
+  };
+
+  const handleSelectionChange = (selectedIds) => {
+    setSelectedUsers(selectedIds);
+    if (selectedIds.length > 0) {
+      addAlert('info', `${selectedIds.length} user(s) selected`);
+    }
+  };
+
+  const handleSort = (sortConfig) => {
+    addAlert('info', `Sorted by ${sortConfig.key} in ${sortConfig.direction} order`);
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -559,6 +747,109 @@ const ComponentShowcase = () => {
                   {loading ? 'Submitting...' : 'Submit Form'}
                 </Button>
               </form>
+            </Card.Content>
+          </Card>
+        </div>
+
+        {/* Table Components */}
+        <div className="mb-8">
+          <Card variant="glass">
+            <Card.Header>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Card.Title>Table Components</Card.Title>
+                  <Card.Subtitle>Advanced data tables with sorting, search, and pagination</Card.Subtitle>
+                </div>
+                <Table.Actions>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => addAlert('info', 'Add new user clicked')}
+                  >
+                    Add User
+                  </Button>
+                  {selectedUsers.length > 0 && (
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => addAlert('error', `Delete ${selectedUsers.length} selected users`)}
+                    >
+                      Delete Selected ({selectedUsers.length})
+                    </Button>
+                  )}
+                </Table.Actions>
+              </div>
+            </Card.Header>
+            <Card.Content>
+              <div className="space-y-8">
+                {/* Basic Table */}
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Basic Table</h4>
+                  <p className="text-sm text-gray-600 mb-4">Simple table with sorting and row click functionality</p>
+                  <Table
+                    data={users}
+                    columns={tableColumns.filter(col => col.key !== 'actions')}
+                    onRowClick={handleRowClick}
+                    onSort={handleSort}
+                    variant="default"
+                  />
+                </div>
+
+                {/* Advanced Table */}
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Advanced Table</h4>
+                  <p className="text-sm text-gray-600 mb-4">Table with search, selection, pagination, and actions</p>
+                  <Table
+                    data={users}
+                    columns={tableColumns}
+                    searchable={true}
+                    selectable={true}
+                    pagination={true}
+                    itemsPerPage={3}
+                    onSelectionChange={handleSelectionChange}
+                    onSort={handleSort}
+                    variant="glass"
+                    emptyMessage="No users found"
+                  />
+                </div>
+
+                {/* Minimal Table */}
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Minimal Table</h4>
+                  <p className="text-sm text-gray-600 mb-4">Clean, minimal table design</p>
+                  <Table
+                    data={users.slice(0, 3)}
+                    columns={tableColumns.filter(col => !['actions', 'email'].includes(col.key))}
+                    variant="minimal"
+                    size="sm"
+                    sortable={false}
+                  />
+                </div>
+
+                {/* Loading State */}
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Loading State</h4>
+                  <p className="text-sm text-gray-600 mb-4">Table showing loading spinner</p>
+                  <Table
+                    data={[]}
+                    columns={tableColumns.filter(col => col.key !== 'actions')}
+                    loading={true}
+                    variant="default"
+                  />
+                </div>
+
+                {/* Empty State */}
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Empty State</h4>
+                  <p className="text-sm text-gray-600 mb-4">Table with no data</p>
+                  <Table
+                    data={[]}
+                    columns={tableColumns.filter(col => col.key !== 'actions')}
+                    variant="default"
+                    emptyMessage="No users available. Add some users to get started!"
+                  />
+                </div>
+              </div>
             </Card.Content>
           </Card>
         </div>
