@@ -42,7 +42,7 @@ const Login = ({
 }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { error } = useAppSelector((state) => state.auth);
+  const { error, loading } = useAppSelector((state) => state.auth);
   const { success, error: showErrorToast } = useToast();
   
   const [values, setValues] = useState(
@@ -50,7 +50,6 @@ const Login = ({
   );
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Clear error when component mounts
   useEffect(() => {
@@ -80,22 +79,11 @@ const Login = ({
   };
 
   const handleChange = (name, value) => {
-    const hadErrors = Object.keys(errors).length > 0;
     setValues(v => ({ ...v, [name]: value }));
-    setErrors(e => ({ ...e, [name]: '' }));
     
-    // Clear Redux error when user starts typing
-    if (error) {
-      dispatch(clearError());
-      // Show a helpful message when user starts correcting their input
-      if (name === 'email' || name === 'password') {
-        showErrorToast('Please check your credentials and try again.', { duration: 2000 });
-      }
-    }
-    
-    // Show success message when user fixes validation errors
-    if (hadErrors && Object.keys(errors).length === 0) {
-      success('✅ Form looks good! You can now submit.', { duration: 2000 });
+    // Clear field-specific error when user types
+    if (errors[name]) {
+      setErrors(e => ({ ...e, [name]: '' }));
     }
   };
 
@@ -129,8 +117,8 @@ const Login = ({
     } else if (error.includes('not found') || error.includes('404')) {
       return 'Service not found. Please try again later.';
     } else {
-      // Default error message with emoji
-      return ` ${errorMessage}`;
+      // Default error message
+      return errorMessage;
     }
   };
 
@@ -142,28 +130,22 @@ const Login = ({
       // Show toast for validation errors
       const firstError = Object.values(errors)[0];
       if (firstError) {
-        showErrorToast(` ${firstError}`, { duration: 3000 });
+        showErrorToast(firstError, { duration: 3000 });
       }
       return;
     }
     
-    if (isSubmitting) return;
+    if (loading) return;
     
-    setIsSubmitting(true);
     try {
       const result = await dispatch(loginUser(values));
       if (loginUser.fulfilled.match(result)) {
         // Show success toast and let router handle navigation
-        success(' Login successful! Welcome back!', { duration: 3000 });
+        success('Login successful! Welcome back!', { duration: 3000 });
         console.log('Login successful:', result.payload);
-        // Don't set isSubmitting to false here - let the router redirect
-      } else {
-        // Only reset submitting state if login failed
-        setIsSubmitting(false);
       }
     } catch (error) {
       console.error('Login error:', error);
-      setIsSubmitting(false);
     }
   };
 
@@ -177,6 +159,23 @@ const Login = ({
 
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black">
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="absolute inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center transition-all duration-500 ease-in-out">
+          <div className="text-center">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+            </div>
+            <p className="mt-6 text-white text-lg font-medium animate-pulse">
+              Signing you in...
+            </p>
+            <p className="mt-2 text-white/70 text-sm">
+              Please wait while we authenticate your credentials
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Background Video */}
       <div className="absolute inset-0 w-full h-full z-0 rotate-180 top-[-50%]">
         <video
@@ -220,12 +219,12 @@ const Login = ({
           <img src="https://v-accel.ai/hero-bg.svg" alt="description" className="w-full h-auto" />
         </div>
         <form
-          className="bg-white/0 border border-white/10 p-8 rounded-2xl shadow-3xl flex flex-col gap-4 min-w-[320px] max-w-[90vw] w-full sm:w-[400px]"
+          className="bg-white/0 border border-white/10 p-8 rounded-2xl shadow-3xl flex flex-col gap-4 min-w-[320px] max-w-[90vw] w-full sm:w-[400px] transition-all duration-300"
           onSubmit={handleSubmit}
           noValidate
         >
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl mb-4">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl mb-4 transition-transform duration-200 hover:scale-105">
               {logoIcon}
             </div>
             <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
@@ -234,7 +233,7 @@ const Login = ({
             <p className="text-gray-400">{subtitle}</p>
           </div>
           {fields.map(field => (
-            <div key={field.name}>
+            <div key={field.name} className="transition-all duration-200">
               <label className="block text-sm font-medium text-gray-500 mb-2">
                 {field.label}
               </label>
@@ -249,11 +248,12 @@ const Login = ({
                   }
                   value={values[field.name]}
                   onChange={e => handleChange(field.name, e.target.value)}
-                  className={`w-full pl-4 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 cursor-text ${errors[field.name] ? 'border-red-500' : ''
-                    }`}
+                  className={`w-full pl-4 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none  hover:border-blue-500 transition-all duration-200 cursor-text ${
+                    errors[field.name] ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
+                  } ${loading ? 'opacity-75' : ''}`}
                   placeholder={field.placeholder}
                   required
-                  disabled={isSubmitting}
+                  disabled={loading}
                 />
                 {field.icon && (
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500">
@@ -264,15 +264,15 @@ const Login = ({
                   <button
                     type="button"
                     onClick={() => setShowPassword(s => !s)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-600 transition-colors cursor-pointer"
-                    disabled={isSubmitting}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-400 transition-colors cursor-pointer disabled:opacity-50"
+                    disabled={loading}
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 )}
               </div>
               {errors[field.name] && (
-                <p className="text-xs text-red-500 mt-1">{errors[field.name]}</p>
+                <p className="text-xs text-red-500 mt-1 animate-pulse">{errors[field.name]}</p>
               )}
             </div>
           ))}
@@ -281,9 +281,9 @@ const Login = ({
             <div className="flex justify-end">
               <button
                 type="button"
-                className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium disabled:opacity-50 cursor-pointer"
+                className="text-sm text-blue-600 hover:text-blue-400 transition-colors font-medium disabled:opacity-50 cursor-pointer"
                 onClick={handleForgotPassword}
-                disabled={isSubmitting}
+                disabled={loading}
               >
                 Forgot password?
               </button>
@@ -291,10 +291,10 @@ const Login = ({
           )}
           <button
             type="submit"
-            className="w-full mt-5 bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:shadow-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isSubmitting}
+            className="w-full mt-5 bg-gradient-to-r to-blue-600 from-purple-600 text-white py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 focus:shadow-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
+            disabled={loading}
           >
-            {isSubmitting ? (
+            {loading ? (
               <div className="flex items-center justify-center">
                 <Spinner size="sm" className="mr-2" />
                 Signing in...

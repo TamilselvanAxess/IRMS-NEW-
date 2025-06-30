@@ -188,7 +188,7 @@ const ForgotPassword = ({
                 type="email"
                 value={email}
                 onChange={e => handleEmailChange(e.target.value)}
-                className={`w-full pl-10 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg focus:outline-none transition-all duration-200 cursor-text ${emailError ? 'border-red-500' : ''}`}
+                className={`w-full pl-10 pr-4 bg-transparent text-gray-500 backdrop-blur-lg shadow-inner py-3 border border-gray-700 rounded-lg hover:border-blue-500 focus:outline-none transition-all duration-200 cursor-text ${emailError ? 'border-red-500' : ''}`}
                 placeholder="Enter your email address"
                 required
               />

@@ -69,6 +69,7 @@ const initialState = {
   token: localStorage.getItem('token'),
   isAuthenticated: false,
   loading: false,
+  logoutLoading: false,
   error: null,
   passwordResetSent: false,
   passwordResetSuccess: false,
@@ -87,6 +88,10 @@ const authSlice = createSlice({
       state.error = null;
       state.authInitialized = true;
       state.loading = false;
+      state.logoutLoading = false;
+    },
+    setLogoutLoading: (state, action) => {
+      state.logoutLoading = action.payload;
     },
     clearError: (state) => {
       state.error = null;
@@ -193,5 +198,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearError, setUser, setAuthInitialized, setLoading } = authSlice.actions;
+export const { logout, setLogoutLoading, clearError, setUser, setAuthInitialized, setLoading } = authSlice.actions;
 export default authSlice.reducer; 
